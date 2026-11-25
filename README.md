@@ -146,30 +146,6 @@ After completing an adventure, players can choose:
 - Play Again – Restart the game.
 - Exit – Close the application.
 
-## 📂 Project Structure
-
-```text
-Basic-Text-Based-Adventure-Game/
-│
-├── AdventureAWT.java
-│
-├── README.md
-│
-└── Screenshots/
-    ├── Home_Page.png
-    ├── Left_Path.png
-    ├── Swim.png
-    ├── Rest.png
-    ├── Wisdom.png
-    ├── Follow.png
-    ├── Right_Path.png
-    ├── Enter_Cave.png
-    ├── Sneak.png
-    ├── Search_Hut.png
-    ├── Fight_Dragon.png
-    └── Climb_Tower.png
-```
-
 ## 💻 Source Code
 
 The complete Java implementation is provided below.
