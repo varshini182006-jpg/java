@@ -1,0 +1,270 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class AdventureAWT extends Frame implements ActionListener {
+
+    private TextArea narrative;
+    private Panel buttonPanel;
+    private Button choice1, choice2, choice3;
+    private String state;
+
+    public AdventureAWT() {
+        super("Adventure Game (AWT)");
+
+        // Basic window setup
+        setSize(700, 380);
+        setLayout(new BorderLayout());
+
+        // Create components
+        narrative = new TextArea("", 12, 80, TextArea.SCROLLBARS_VERTICAL_ONLY);
+        narrative.setEditable(false);
+        narrative.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        add(narrative, BorderLayout.CENTER);
+
+        buttonPanel = new Panel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        choice1 = new Button("choice1");
+        choice2 = new Button("choice2");
+        choice3 = new Button("choice3");
+
+        // Attach listeners
+        choice1.addActionListener(this);
+        choice2.addActionListener(this);
+        choice3.addActionListener(this);
+
+        // Add to panel and then hide initial labels (we'll set them in startGame)
+        buttonPanel.add(choice1);
+        buttonPanel.add(choice2);
+        buttonPanel.add(choice3);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // Window close
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                dispose();
+                System.exit(0);
+            }
+        });
+
+        // Initialize game state and center window
+        startGame();
+        centerOnScreen();
+        setVisible(true);
+    }
+
+    // Centering method (works reliably across JDKs)
+    private void centerOnScreen() {
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension win = getSize();
+        int x = Math.max(0, (screen.width - win.width) / 2);
+        int y = Math.max(0, (screen.height - win.height) / 2);
+        setLocation(x, y);
+    }
+
+    private void startGame() {
+        state = "START";
+        narrative.setText(
+            "=======================================\n" +
+            "      WELCOME TO THE ADVENTURE GAME!   \n" +
+            "=======================================\n\n" +
+            "You wake up in a dark forest.\n" +
+            "You see two paths ahead: LEFT or RIGHT.\n"
+        );
+        setChoices("Left", "Right", null);
+    }
+
+    private void setChoices(String a, String b, String c) {
+        setButton(choice1, a);
+        setButton(choice2, b);
+        setButton(choice3, c);
+        // refresh layout
+        buttonPanel.validate();
+    }
+
+    private void setButton(Button btn, String label) {
+        if (label == null) {
+            btn.setVisible(false);
+            btn.setLabel(""); // remove stale label
+        } else {
+            btn.setLabel(label);
+            btn.setVisible(true);
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            Object src = e.getSource();
+            if (!(src instanceof Button)) return;
+            String cmd = ((Button) src).getLabel();
+            if (cmd == null) cmd = "";
+            cmd = cmd.trim().toLowerCase();
+
+            switch (state) {
+                case "START":
+                    if (cmd.equals("left")) {
+                        state = "LEFT_PATH";
+                        narrative.setText(
+                            "You take the left path and soon reach a wide, slow river.\n" +
+                            "The water looks deep and cold.\n" +
+                            "Do you SWIM across, BUILD a raft, or FOLLOW the river downstream?"
+                        );
+                        setChoices("Swim", "Build", "Follow");
+                    } else if (cmd.equals("right")) {
+                        state = "RIGHT_PATH";
+                        narrative.setText(
+                            "You take the right path and find the mouth of a dim cave.\n" +
+                            "A faint draft of cold air comes from inside.\n" +
+                            "Do you ENTER the cave, go BACK to the forest, or WAIT and listen?"
+                        );
+                        setChoices("Enter", "Back", "Wait");
+                    }
+                    break;
+
+                case "LEFT_PATH":
+                    if (cmd.equals("swim")) {
+                        state = "ISLAND";
+                        narrative.setText(
+                            "You swim bravely and reach a small island in the middle of the river.\n" +
+                            "The island holds the ruins of a small shrine and a hidden path.\n" +
+                            "Do you EXPLORE the shrine, REST by the shore, or RETURN to the river bank?"
+                        );
+                        setChoices("Explore", "Rest", "Return");
+                    } else if (cmd.equals("build")) {
+                        narrative.setText("You try to build a raft but it collapses as soon as you push off.\nYour raft and supplies are lost. GAME OVER.");
+                        endGame();
+                    } else if (cmd.equals("follow")) {
+                        narrative.setText("Following the river leads you to a friendly fisher's hut. He offers you food and shelter. YOU WIN (safe ending).");
+                        endGame();
+                    }
+                    break;
+
+                case "ISLAND":
+                    if (cmd.equals("explore")) {
+                        state = "TEMPLE";
+                        narrative.setText(
+                            "Inside the shrine you find an old puzzle door with three glyphs.\n" +
+                            "There is a dusty inscription: 'Choose wisdom, courage, or patience.'\n" +
+                            "Do you pick WISDOM, COURAGE, or PATIENCE?"
+                        );
+                        setChoices("Wisdom", "Courage", "Patience");
+                    } else if (cmd.equals("rest")) {
+                        narrative.setText("You rest and regain strength. At dawn a boat finds you and takes you home. SAFE ENDING.");
+                        endGame();
+                    } else if (cmd.equals("return")) {
+                        narrative.setText("You swim back to the river bank and decide to head home. The adventure ends quietly. ENDING.");
+                        endGame();
+                    }
+                    break;
+
+                case "TEMPLE":
+                    if (cmd.equals("wisdom")) {
+                        narrative.setText("You touch the glyph of wisdom. The door opens revealing a chest of old scrolls and knowledge. You feel enlightened. VICTORY.");
+                        endGame();
+                    } else if (cmd.equals("courage")) {
+                        narrative.setText("A trap triggers! You narrowly jump aside and grab a rusty dagger. Though injured, you escape with treasure. HEROIC ENDING.");
+                        endGame();
+                    } else if (cmd.equals("patience")) {
+                        narrative.setText("You sit and wait, and the shrine spirit appears, offering a riddle. You answer correctly and are granted passage to a secret valley. MYSTICAL ENDING.");
+                        endGame();
+                    }
+                    break;
+
+                case "RIGHT_PATH":
+                    if (cmd.equals("enter")) {
+                        state = "CAVE";
+                        narrative.setText(
+                            "You step into the cave. The air grows chillier and you spot a sleeping dragon deeper inside.\n" +
+                            "Do you FIGHT it, SNEAK past, or RETREAT quietly?"
+                        );
+                        setChoices("Fight", "Sneak", "Retreat");
+                    } else if (cmd.equals("back")) {
+                        narrative.setText("You return to the forest and soon find a path that leads home. SAFE END.");
+                        endGame();
+                    } else if (cmd.equals("wait")) {
+                        state = "HUT";
+                        narrative.setText("You listen carefully and hear faint voices. A secret entrance opens to a hidden cavern. You slip inside.\n\nInside you discover a hermit's hut with strange tools. Do you TALK to the hermit, SEARCH the hut, or LEAVE?");
+                        setChoices("Talk", "Search", "Leave");
+                    }
+                    break;
+
+                case "CAVE":
+                    if (cmd.equals("fight")) {
+                        state = "MOUNTAIN";
+                        narrative.setText("You try to fight but the dragon is overwhelming. You flee wounded and stumble out of the cave.\n\nClutching your wounds you climb a nearby ridge where you find an ancient watchtower.\nDo you CLIMB the tower, HIDE behind rocks, or CALL for help?");
+                        setChoices("Climb", "Hide", "Call");
+                    } else if (cmd.equals("sneak")) {
+                        narrative.setText("You successfully sneak past the dragon and find a glittering hoard. You pocket a small gem and escape — LUCKY ENDING.");
+                        endGame();
+                    } else if (cmd.equals("retreat")) {
+                        narrative.setText("You retreat and stumble into a marsh where you struggle until a stranger helps you out. You survive but the adventure ends.");
+                        endGame();
+                    }
+                    break;
+
+                case "HUT":
+                    if (cmd.equals("talk")) {
+                        narrative.setText("The hermit is friendly and tells old tales. He gives you a map leading to a hidden valley. ADVENTURE CONTINUES (you survive).");
+                        endGame();
+                    } else if (cmd.equals("search")) {
+                        narrative.setText("You find a small lantern and a note that hints at treasure deeper in the caves. Inspired, you prepare to continue your journey. CONTINUED ADVENTURE.");
+                        endGame();
+                    } else if (cmd.equals("leave")) {
+                        narrative.setText("You leave quietly and the forest swallows the path behind you. A mysterious but peaceful ending.");
+                        endGame();
+                    }
+                    break;
+
+                case "MOUNTAIN":
+                    if (cmd.equals("climb")) {
+                        narrative.setText("You climb the watchtower. From the top you see distant lights and a path to a grand city. You descend and follow them — GRAND ENDING.");
+                        endGame();
+                    } else if (cmd.equals("hide")) {
+                        narrative.setText("You hide until dawn. A caravan passes by and offers you passage home. SAFE END.");
+                        endGame();
+                    } else if (cmd.equals("call")) {
+                        narrative.setText("You shout for help. A ranger hears you and rescues you. He heals you and tells of further quests — YOUR STORY CONTINUES.");
+                        endGame();
+                    }
+                    break;
+
+                case "END":
+                    if (cmd.equals("play again") || cmd.equals("playagain") || cmd.equals("play")) {
+                        startGame();
+                    } else if (cmd.equals("exit") || cmd.equals("quit")) {
+                        dispose();
+                        System.exit(0);
+                    }
+                    break;
+
+                default:
+                    narrative.setText("An unexpected silence... the adventure pauses.");
+                    endGame();
+                    break;
+            }
+        } catch (Throwable t) {
+            // Print stack trace so the terminal shows the error (useful in VS Code terminal)
+            t.printStackTrace();
+            narrative.setText("An error occurred. See console for details.");
+        }
+    }
+
+    private void endGame() {
+        setChoices("Play Again", "Exit", null);
+        state = "END";
+    }
+
+    public static void main(String[] args) {
+        // Ensure GUI is created on the AWT event thread
+        EventQueue.invokeLater(() -> {
+            try {
+                new AdventureAWT();
+            } catch (Throwable t) {
+                t.printStackTrace();
+                System.err.println("Failed to create GUI: " + t.getMessage());
+            }
+        });
+    }
+}
+                                   
+
+
